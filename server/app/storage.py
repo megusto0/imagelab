@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import json
+import ntpath
+import posixpath
+import re
 import threading
 import uuid
 from dataclasses import dataclass, field
@@ -25,7 +28,7 @@ class UploadRecord:
     handshake_session_id: Optional[str]
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     assembler: ChunkAssembler = field(init=False)
-    stage_metrics: Dict[str, Dict[str, int | float | str]] = field(default_factory=dict)
+    stage_metrics: Dict[str, Dict[str, int | float | str | None]] = field(default_factory=dict)
     meta: Dict[str, int | float | str] = field(default_factory=dict)
     final_path: Optional[Path] = None
     original_size: Optional[int] = None
@@ -91,12 +94,25 @@ class Storage:
         self,
         record: UploadRecord,
         stage: str,
-        metrics: Dict[str, int | float | str],
+        metrics: Dict[str, int | float | str | None],
     ) -> None:
         record.stage_metrics[stage] = metrics
 
+    @staticmethod
+    def _sanitize_filename(filename: str) -> str:
+        """Удалить управляющие символы и пути, оставив безопасное имя."""
+
+        candidate = ntpath.basename(filename)
+        candidate = posixpath.basename(candidate)
+        candidate = Path(candidate).name
+        if candidate in ("", ".", ".."):
+            candidate = "file"
+        candidate = re.sub(r"[^A-Za-z0-9._-]", "_", candidate)
+        return candidate or "file"
+
     def complete_upload(self, record: UploadRecord, data: bytes) -> Path:
-        final_path = self.root / "final" / f"{record.file_id}_{record.filename}"
+        safe_name = self._sanitize_filename(record.filename)
+        final_path = self.root / "final" / f"{record.file_id}_{safe_name}"
         final_path.write_bytes(data)
         record.final_path = final_path
         record.stage_metrics.setdefault("final", {})
