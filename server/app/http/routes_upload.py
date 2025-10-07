@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 from fastapi import APIRouter, HTTPException, Request, status
 
@@ -36,6 +36,57 @@ def _get_metrics(request: Request):
 
 def _get_noise_engine(request: Request):
     return request.app.state.noise
+
+
+async def _publish_stage_metrics(
+    request: Request,
+    file_id: str,
+    stage: str,
+    metrics: Dict[str, Any],
+) -> None:
+    await _get_sse(request).publish(
+        "stage_metrics",
+        {
+            "file_id": file_id,
+            "stage": stage,
+            "metrics": metrics,
+            "ts": time.time(),
+        },
+    )
+
+
+async def _publish_progress(
+    request: Request,
+    file_id: str,
+    *,
+    sequence: int,
+    expected: Optional[int],
+    received_data: int,
+    received_parity: int,
+    received_total: int,
+    missing_total: int,
+    bytes_sent: int,
+    is_parity: bool,
+) -> None:
+    progress = None
+    if expected:
+        progress = received_data / expected if expected else None
+    await _get_sse(request).publish(
+        "upload_progress",
+        {
+            "file_id": file_id,
+            "sequence": sequence,
+            "expected": expected,
+            "received_data": received_data,
+            "received_parity": received_parity,
+            "received_total": received_total,
+            "missing_total": missing_total,
+            "bytes": bytes_sent,
+            "is_parity": is_parity,
+            "progress": progress,
+            "ts": time.time(),
+        },
+    )
 
 
 @router.post("/handshake", response_model=HandshakeResponse)
@@ -101,7 +152,21 @@ async def upload_init(payload: UploadInitRequest, request: Request) -> UploadIni
         {
             "filename": payload.filename,
             "mime_type": payload.mime_type,
+            "chunk_size_bytes": chunk_size,
+            "compression_enabled": payload.pipeline.compression.enabled,
+            "compression_algorithm": payload.pipeline.compression.algorithm,
+            "compression_level": payload.pipeline.compression.level,
+            "encryption_enabled": payload.pipeline.encryption.enabled,
+            "fec_mode": payload.pipeline.fec.mode,
+            "fec_n": payload.pipeline.fec.n,
+            "fec_k": payload.pipeline.fec.k,
         },
+    )
+    await _publish_stage_metrics(
+        request,
+        record.file_id,
+        "init",
+        record.stage_metrics.get("init", {}),
     )
 
     await _get_sse(request).publish(
@@ -110,6 +175,8 @@ async def upload_init(payload: UploadInitRequest, request: Request) -> UploadIni
             "file_id": record.file_id,
             "filename": payload.filename,
             "mime_type": payload.mime_type,
+            "chunk_size_bytes": chunk_size,
+            "pipeline": payload.pipeline.model_dump(),
         },
     )
 
@@ -178,14 +245,32 @@ async def upload_chunk(payload: ChunkRequest, request: Request) -> Dict[str, flo
     duration = time.perf_counter() - start
     _get_metrics(request).record_upload(len(payload.payload), duration, stage="chunk")
 
+    expected_total = record.assembler.expected or payload.total_sequences
+    missing = record.assembler.missing_sequences()
+    data_count = record.assembler.data_count()
+    parity_count = record.assembler.parity_count()
+
     await _get_sse(request).publish(
         "chunk",
         {
             "file_id": payload.file_id,
             "sequence": payload.sequence,
             "parity": payload.is_parity,
+            "bytes": len(payload.payload),
             "stats": stats,
         },
+    )
+    await _publish_progress(
+        request,
+        payload.file_id,
+        sequence=payload.sequence,
+        expected=expected_total,
+        received_data=data_count,
+        received_parity=parity_count,
+        received_total=data_count + parity_count,
+        missing_total=len(missing),
+        bytes_sent=len(payload.payload),
+        is_parity=payload.is_parity,
     )
     return stats
 
@@ -220,10 +305,16 @@ def _collect_shards(record) -> Sequence[Optional[bytes]]:
     return [joined]
 
 
-def _decrypt_payload(record, data: bytes) -> bytes:
+def _decrypt_payload(record, data: bytes) -> tuple[bytes, Dict[str, Any]]:
     pipeline = record.pipeline
+    metrics: Dict[str, Any] = {
+        "enabled": pipeline.encryption.enabled,
+        "input_bytes": len(data),
+        "session_id": record.handshake_session_id or pipeline.encryption.session_id,
+    }
     if not pipeline.encryption.enabled:
-        return data
+        metrics["output_bytes"] = len(data)
+        return data, metrics
 
     session_id = record.handshake_session_id or pipeline.encryption.session_id
     if not session_id:
@@ -234,10 +325,12 @@ def _decrypt_payload(record, data: bytes) -> bytes:
         raise RuntimeError("Не найден сохранённый контекст рукопожатия.")
 
     cipher = AESGCMCipher(handshake.aes_key, handshake.nonce_base)
-    return cipher.decrypt(data, sequence=0)
+    decrypted = cipher.decrypt(data, sequence=0)
+    metrics["output_bytes"] = len(decrypted)
+    return decrypted, metrics
 
 
-def _decompress_payload(record, data: bytes) -> bytes:
+def _decompress_payload(record, data: bytes) -> tuple[bytes, Dict[str, Any]]:
     pipeline = record.pipeline
     try:
         algorithm = CompressionAlgo(pipeline.compression.algorithm)
@@ -250,8 +343,7 @@ def _decompress_payload(record, data: bytes) -> bytes:
         algorithm=algorithm,
     )
     decompressed, metrics = decompress_bytes(data, compression_cfg)
-    storage.set_stage_metrics(record, "compression", metrics)
-    return decompressed
+    return decompressed, metrics
 
 
 @router.post("/finish")
@@ -285,31 +377,44 @@ async def finish_upload(payload: FinishUploadRequest, request: Request) -> Dict[
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
     storage.set_stage_metrics(record, "fec", fec_metrics)
+    await _publish_stage_metrics(request, record.file_id, "fec", fec_metrics)
     _get_metrics(request).record_fec_result(fec_metrics.get("corrected", 0), pipeline.fec.mode)
 
     try:
-        decrypted = _decrypt_payload(record, data)
-        storage.set_stage_metrics(
-            record,
-            "encryption",
-            {
-                "enabled": pipeline.encryption.enabled,
-                "input_bytes": len(data),
-                "output_bytes": len(decrypted),
-            },
-        )
+        decrypted, encryption_metrics = _decrypt_payload(record, data)
+        storage.set_stage_metrics(record, "encryption", encryption_metrics)
+        await _publish_stage_metrics(request, record.file_id, "encryption", encryption_metrics)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
 
-    decompressed = _decompress_payload(record, decrypted)
+    decompressed, compression_metrics = _decompress_payload(record, decrypted)
+    storage.set_stage_metrics(record, "compression", compression_metrics)
+    await _publish_stage_metrics(request, record.file_id, "compression", compression_metrics)
 
-    path = storage.complete_upload(record, decompressed)
+    expected_original = record.meta.get("original_size")
+    expected_original_int: Optional[int]
+    try:
+        expected_original_int = int(expected_original) if expected_original is not None else None
+    except (TypeError, ValueError):
+        expected_original_int = None
+    if expected_original_int is not None and expected_original_int != len(decompressed):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Размер восстановленного файла не совпадает с исходным. "
+                "Попробуйте уменьшить помехи или включить FEC."
+            ),
+        )
+
+    path = storage.complete_upload(record, decompressed, expected_size=expected_original_int)
+    await _publish_stage_metrics(request, record.file_id, "final", record.stage_metrics.get("final", {}))
     await _get_sse(request).publish(
         "image_ready",
         {
             "file_id": record.file_id,
             "filename": record.filename,
             "path": str(path),
+            "size_bytes": len(decompressed),
         },
     )
 

@@ -95,6 +95,16 @@ class ChunkAssembler:
     def parity_envelopes(self) -> Iterable[ChunkEnvelope]:
         return self._parity.values()
 
+    def data_count(self) -> int:
+        """Количество полученных информационных чанков."""
+
+        return len(self._chunks)
+
+    def parity_count(self) -> int:
+        """Количество полученных избыточных чанков."""
+
+        return len(self._parity)
+
     def reassemble(self) -> bytes:
         if not self.has_all_data():
             raise ValueError("Недостаточно чанков для сборки.")

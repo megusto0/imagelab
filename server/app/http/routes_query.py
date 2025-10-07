@@ -22,6 +22,10 @@ def _get_sse(request: Request):
     return request.app.state.sse
 
 
+def _get_noise_engine(request: Request):
+    return request.app.state.noise
+
+
 @router.get("/images")
 async def list_images() -> List[Dict]:
     """Получить список загруженных изображений."""
@@ -70,6 +74,13 @@ async def metrics_snapshot(request: Request):
     """Снимок текущих метрик."""
 
     return JSONResponse(_get_metrics(request).snapshot())
+
+
+@router.get("/config/channel")
+async def get_channel_config(request: Request):
+    """Текущие параметры эмуляции канала."""
+
+    return JSONResponse(_get_noise_engine(request).current_config())
 
 
 @router.get("/events")
