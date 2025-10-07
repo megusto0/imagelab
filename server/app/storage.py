@@ -28,7 +28,7 @@ class UploadRecord:
     handshake_session_id: Optional[str]
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     assembler: ChunkAssembler = field(init=False)
-    stage_metrics: Dict[str, Dict[str, int | float | str | None]] = field(default_factory=dict)
+    stage_metrics: Dict[str, Dict[str, int | float | str | bool | None]] = field(default_factory=dict)
     meta: Dict[str, int | float | str] = field(default_factory=dict)
     final_path: Optional[Path] = None
     original_size: Optional[int] = None
@@ -94,7 +94,7 @@ class Storage:
         self,
         record: UploadRecord,
         stage: str,
-        metrics: Dict[str, int | float | str | None],
+        metrics: Dict[str, int | float | str | bool | None],
     ) -> None:
         record.stage_metrics[stage] = metrics
 
@@ -110,13 +110,21 @@ class Storage:
         candidate = re.sub(r"[^A-Za-z0-9._-]", "_", candidate)
         return candidate or "file"
 
-    def complete_upload(self, record: UploadRecord, data: bytes) -> Path:
+    def complete_upload(
+        self,
+        record: UploadRecord,
+        data: bytes,
+        expected_size: Optional[int] = None,
+    ) -> Path:
         safe_name = self._sanitize_filename(record.filename)
         final_path = self.root / "final" / f"{record.file_id}_{safe_name}"
         final_path.write_bytes(data)
         record.final_path = final_path
         record.stage_metrics.setdefault("final", {})
         record.stage_metrics["final"]["size_bytes"] = len(data)
+        record.stage_metrics["final"]["expected_size_bytes"] = expected_size
+        if expected_size is not None:
+            record.stage_metrics["final"]["matches_expected_size"] = len(data) == expected_size
         return final_path
 
     def list_images(self) -> List[ImageSummary]:

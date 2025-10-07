@@ -39,6 +39,38 @@
         <canvas id="chart-throughput"></canvas>
       </section>
 
+      <section class="panel noise-panel">
+        <h2>Канал связи</h2>
+        <div id="noise-summary" class="info-block">
+          <p>Загрузка параметров…</p>
+        </div>
+        <form id="noise-form" class="noise-form">
+          <label>Потери (%):
+            <input type="number" name="loss" min="0" max="100" step="1" value="0" />
+          </label>
+          <label>BER (1e-5):
+            <input type="number" name="ber" min="0" max="0.2" step="0.0001" value="0" />
+          </label>
+          <label>Дубликаты (%):
+            <input type="number" name="duplicate" min="0" max="100" step="1" value="0" />
+          </label>
+          <label>Перестановка (%):
+            <input type="number" name="reorder" min="0" max="100" step="1" value="0" />
+          </label>
+          <button type="submit" class="ghost">Применить</button>
+        </form>
+      </section>
+
+      <section class="panel stage-panel">
+        <h2>Этапы загрузки</h2>
+        <div id="stage-entries" class="stage-grid"></div>
+      </section>
+
+      <section class="panel progress-panel">
+        <h2>Текущие загрузки</h2>
+        <ul id="progress-list" class="progress-list"></ul>
+      </section>
+
       <section class="panel">
         <h2>Список изображений</h2>
         <table>
@@ -59,29 +91,9 @@
         <img id="preview-image" alt="Предпросмотр" />
         <pre id="preview-meta"></pre>
       </section>
-
-      <section class="panel">
-        <h2>Настройка помех</h2>
-        <form id="noise-form">
-          <label>Потери (%):
-            <input type="number" name="loss" min="0" max="100" step="1" value="0" />
-          </label>
-          <label>BER (1e-5):
-            <input type="number" name="ber" min="0" max="0.2" step="0.0001" value="0" />
-          </label>
-          <label>Дубликаты (%):
-            <input type="number" name="duplicate" min="0" max="100" step="1" value="0" />
-          </label>
-          <label>Перестановка (%):
-            <input type="number" name="reorder" min="0" max="100" step="1" value="0" />
-          </label>
-          <button type="submit" class="ghost">Применить</button>
-        </form>
-      </section>
-
-      <section class="panel">
-        <h2>События</h2>
-        <ul id="events-log"></ul>
+      <section class="panel events-panel">
+        <h2>Журнал событий</h2>
+        <ul id="events-log" class="events-log"></ul>
       </section>
     </main>
 

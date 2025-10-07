@@ -39,7 +39,7 @@ body {
 
 main {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.2rem;
   padding: 1.2rem;
 }
@@ -110,28 +110,184 @@ tbody tr:hover {
   border-radius: 12px;
 }
 
-#noise-form {
+.noise-form {
   display: grid;
   gap: 0.6rem;
 }
 
-#noise-form label {
+.noise-form label {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.6rem;
 }
 
-#events-log {
+.events-log {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 240px;
+  max-height: 280px;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
-#events-log li {
-  padding: 0.4rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.events-log li {
+  background: rgba(12, 18, 30, 0.75);
+  border: 1px solid rgba(100, 165, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.7rem 0.8rem;
   font-size: 0.85rem;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(94, 208, 255, 0.18);
+  border: 1px solid rgba(94, 208, 255, 0.35);
+  border-radius: 999px;
+  padding: 0.05rem 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+}
+
+.badge--error {
+  background: rgba(255, 107, 107, 0.2);
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+.badge--success {
+  background: rgba(105, 255, 178, 0.2);
+  border-color: rgba(105, 255, 178, 0.5);
+}
+
+.event-json {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  background: rgba(4, 8, 20, 0.75);
+  border-radius: 10px;
+  padding: 0.6rem;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.75rem;
+  color: rgba(178, 214, 255, 0.9);
+}
+
+.info-block {
+  background: rgba(12, 18, 30, 0.8);
+  border: 1px solid rgba(94, 208, 255, 0.2);
+  border-radius: 12px;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.stage-grid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.stage-card {
+  background: rgba(14, 21, 33, 0.88);
+  border: 1px solid rgba(103, 160, 255, 0.25);
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.stage-card h3 {
+  margin: 0 0 0.4rem 0;
+  font-size: 0.95rem;
+  color: #c8e1ff;
+}
+
+.stage-card dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.stage-card dt {
+  color: rgba(255, 255, 255, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stage-card dd {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.progress-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.progress-empty {
+  text-align: center;
+  padding: 1.2rem 0.5rem;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.55);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+}
+
+.progress-item {
+  background: rgba(14, 21, 33, 0.88);
+  border: 1px solid rgba(103, 160, 255, 0.25);
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+.progress-item header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.progress-bar {
+  position: relative;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #5ed0ff 0%, #63ffa5 100%);
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
 }
