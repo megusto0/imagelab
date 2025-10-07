@@ -30,7 +30,8 @@ def _compress_deflate(data: bytes, level: int) -> bytes:
 
 
 def _compress_gzip(data: bytes, level: int) -> bytes:
-    return zlib.compress(data, level | 16)
+    compressor = zlib.compressobj(level, zlib.DEFLATED, zlib.MAX_WBITS | 16)
+    return compressor.compress(data) + compressor.flush()
 
 
 def compress_bytes(data: bytes, config: CompressionConfig) -> Tuple[bytes, Dict[str, float]]:

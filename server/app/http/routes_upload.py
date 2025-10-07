@@ -270,7 +270,12 @@ async def finish_upload(payload: FinishUploadRequest, request: Request) -> Dict[
     try:
         if pipeline.fec.mode == "rs":
             config = ReedSolomonConfig(n=pipeline.fec.n, k=pipeline.fec.k)
-            expected_len = record.meta.get("rs_expected_len")
+            expected_len = record.meta.get("rs_expected_len") or record.meta.get("encrypted_size")
+            if expected_len is not None:
+                try:
+                    expected_len = int(expected_len)
+                except (TypeError, ValueError):
+                    expected_len = None
             data, fec_metrics = fec_decode_bytes(shards, "rs", config, expected_len=expected_len)
         elif pipeline.fec.mode == "hamming":
             data, fec_metrics = fec_decode_bytes(shards, "hamming")

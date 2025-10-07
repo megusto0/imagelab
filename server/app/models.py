@@ -99,7 +99,7 @@ class ImageSummary(BaseModel):
     filename: str
     mime_type: str
     uploaded_at: datetime
-    stages: Dict[str, Dict[str, float | str | int]]
+    stages: Dict[str, Dict[str, float | str | int | None]]
     size_bytes: int
 
 
@@ -107,4 +107,4 @@ class StatusResponse(BaseModel):
     file_id: str
     missing_sequences: List[int] = []
     ready: bool = False
-    stages: Dict[str, Dict[str, float | str | int]] = {}
+    stages: Dict[str, Dict[str, float | str | int | None]] = {}
