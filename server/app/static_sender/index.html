@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Отправка изображения — HTTP лаборатория</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./sender.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>Мобильный отправитель</h1>
+      <button id="btn-handshake" class="primary">Рукопожатие</button>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>1. Выбор файла</h2>
+        <label class="file-picker">
+          <input type="file" id="file-input" accept="image/*" />
+          <span id="file-label">Нажмите, чтобы выбрать фото</span>
+        </label>
+        <div id="preview"></div>
+      </section>
+
+      <section class="card">
+        <h2>2. Настройка конвейера</h2>
+        <div class="controls">
+          <label>
+            <input type="checkbox" id="compression-toggle" />
+            Сжатие (deflate)
+          </label>
+          <label for="compression-level">Уровень: <span id="compression-level-value">6</span></label>
+          <input type="range" id="compression-level" min="1" max="9" value="6" />
+        </div>
+
+        <div class="controls">
+          <label>
+            <input type="checkbox" id="encryption-toggle" />
+            Шифрование AES-GCM
+          </label>
+        </div>
+
+        <div class="controls">
+          <label for="fec-mode">Помехоустойчивость:</label>
+          <select id="fec-mode">
+            <option value="off">Отключено</option>
+            <option value="hamming">Хэмминг (7,4)</option>
+            <option value="rs">Рид–Соломон</option>
+          </select>
+        </div>
+
+        <div class="fec-grid">
+          <label for="rs-n">RS n:</label>
+          <input type="number" id="rs-n" value="120" min="10" max="200" />
+          <label for="rs-k">RS k:</label>
+          <input type="number" id="rs-k" value="100" min="5" max="199" />
+        </div>
+
+        <div class="controls">
+          <label for="chunk-size">Размер чанка (КБ):</label>
+          <input type="number" id="chunk-size" value="128" min="16" max="512" />
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3. Отправка</h2>
+        <button id="btn-upload-once" class="primary">Отправить файл</button>
+        <div class="progress">
+          <div id="progress-bar"></div>
+        </div>
+        <pre id="log"></pre>
+      </section>
+
+      <section class="card">
+        <h2>SSE и события</h2>
+        <ul id="events"></ul>
+      </section>
+    </main>
+
+    <script src="./libs/fflate.min.js"></script>
+    <script src="./libs/tweetnacl.min.js"></script>
+    <script src="./sender.js" type="module"></script>
+  </body>
+</html>

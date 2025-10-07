@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Дашборд приёмника — HTTP лаборатория</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="./dashboard.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="hero">
+      <div>
+        <h1>Дашборд сервера</h1>
+        <p>Наблюдайте за сжатием, шифрованием и FEC исключительно через HTTP.</p>
+      </div>
+      <button id="refresh-btn" class="ghost">Обновить список</button>
+    </header>
+
+    <main>
+      <section class="panel metrics-panel">
+        <h2>Текущие метрики</h2>
+        <div class="metrics-grid">
+          <div>
+            <span class="metric-title">Скользящее окно</span>
+            <span id="metric-window" class="metric-value">—</span>
+          </div>
+          <div>
+            <span class="metric-title">Пропускная способность</span>
+            <span id="metric-throughput" class="metric-value">—</span>
+          </div>
+          <div>
+            <span class="metric-title">Средний RTT</span>
+            <span id="metric-rtt" class="metric-value">—</span>
+          </div>
+          <div>
+            <span class="metric-title">Последний FEC</span>
+            <span id="metric-fec" class="metric-value">—</span>
+          </div>
+        </div>
+        <canvas id="chart-throughput"></canvas>
+      </section>
+
+      <section class="panel">
+        <h2>Список изображений</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Имя</th>
+              <th>Размер</th>
+              <th>Загружено</th>
+            </tr>
+          </thead>
+          <tbody id="images-table"></tbody>
+        </table>
+      </section>
+
+      <section class="panel preview-panel">
+        <h2>Предпросмотр</h2>
+        <img id="preview-image" alt="Предпросмотр" />
+        <pre id="preview-meta"></pre>
+      </section>
+
+      <section class="panel">
+        <h2>Настройка помех</h2>
+        <form id="noise-form">
+          <label>Потери (%):
+            <input type="number" name="loss" min="0" max="100" step="1" value="0" />
+          </label>
+          <label>BER (1e-5):
+            <input type="number" name="ber" min="0" max="0.2" step="0.0001" value="0" />
+          </label>
+          <label>Дубликаты (%):
+            <input type="number" name="duplicate" min="0" max="100" step="1" value="0" />
+          </label>
+          <label>Перестановка (%):
+            <input type="number" name="reorder" min="0" max="100" step="1" value="0" />
+          </label>
+          <button type="submit" class="ghost">Применить</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>События</h2>
+        <ul id="events-log"></ul>
+      </section>
+    </main>
+
+    <script src="./libs/chart.umd.js"></script>
+    <script src="./dashboard.js" type="module"></script>
+  </body>
+</html>

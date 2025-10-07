@@ -1,0 +1,137 @@
+:root {
+  color-scheme: dark;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background: #0a0d14;
+  color: #f7fbff;
+}
+
+body {
+  margin: 0;
+}
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #18233a 0%, #131b2b 100%);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.hero p {
+  margin: 0.2rem 0 0;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ghost {
+  background: transparent;
+  color: #6cd7ff;
+  border: 1px solid rgba(108, 215, 255, 0.4);
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+main {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.2rem;
+  padding: 1.2rem;
+}
+
+.panel {
+  background: rgba(23, 32, 49, 0.9);
+  border-radius: 16px;
+  padding: 1rem 1.2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+.panel h2 {
+  margin-top: 0;
+  font-size: 1rem;
+  color: #9fc9ff;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.8rem;
+}
+
+.metric-title {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.metric-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  padding: 0.6rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+.preview-panel img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin-bottom: 0.8rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.preview-panel pre {
+  font-size: 0.8rem;
+  max-height: 180px;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.8rem;
+  border-radius: 12px;
+}
+
+#noise-form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+#noise-form label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+#events-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+}
+
+#events-log li {
+  padding: 0.4rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.85rem;
+}
